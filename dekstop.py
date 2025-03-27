@@ -10,7 +10,7 @@ class Aplicacion:
         self.master.title("Seleccionar Usuario")
         self.master.geometry("800x600")  # Tamaño de la ventana principal
         self.master.configure(bg="#FF8C00")  # Color de fondo naranja oscuro
-        
+
         # Agregar título en la parte superior
         self.titulo = tk.Label(self.master, text="SELECCIONE SU PERFIL", bg="#FF8C00", fg="#FFFFFF", font=("Arial", 30, "bold"))
         self.titulo.pack(pady=20)
@@ -36,41 +36,41 @@ class Aplicacion:
             "height": 4,
             "compound": "top"  # Texto debajo de la imagen
         }
-        
+
         # Cargar imagen del prisionero
-        response_prisionero = requests.get("https://img.freepik.com/vector-premium/icono-joven-prision-contorno-joven-carcel-icono-vectorial-color-plano-aislado_96318-126520.jpg")
-        if response_prisionero.status_code == 200:
-            img_data_prisionero = response_prisionero.content
-            img_prisionero = Image.open(BytesIO(img_data_prisionero)).convert("RGBA").resize((100, 100), Image.LANCZOS)
-            img_tk_prisionero = ImageTk.PhotoImage(img_prisionero)
-        else:
-            print("Error al cargar la imagen del prisionero.")
-            img_tk_prisionero = None
-        
+        url_prisionero = "https://img.freepik.com/vector-premium/icono-joven-prision-contorno-joven-carcel-icono-vectorial-color-plano-aislado_96318-126520.jpg"
+        img_tk_prisionero = self.cargar_imagen(url_prisionero)
+
         # Botón de prisionero
         boton_prisionero = tk.Button(self.master, command=lambda: self.seleccionar_usuario('prisionero'), **button_style)
         boton_prisionero.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=20, pady=20)
         if img_tk_prisionero:
             boton_prisionero.config(image=img_tk_prisionero, text="PRISIONERO")
             boton_prisionero.image = img_tk_prisionero
-        
+
         # Cargar imagen del carcelero
-        response_carcelero = requests.get("https://cdn-icons-png.flaticon.com/512/14167/14167711.png")
-        if response_carcelero.status_code == 200:
-            img_data_carcelero = response_carcelero.content
-            img_carcelero = Image.open(BytesIO(img_data_carcelero)).resize((100, 100), Image.LANCZOS)
-            img_tk_carcelero = ImageTk.PhotoImage(img_carcelero)
-        else:
-            print("Error al cargar la imagen del carcelero.")
-            img_tk_carcelero = None
-        
+        url_carcelero = "https://cdn-icons-png.flaticon.com/512/14167/14167711.png"
+        img_tk_carcelero = self.cargar_imagen(url_carcelero)
+
         # Botón de carcelero
         boton_carcelero = tk.Button(self.master, command=lambda: self.seleccionar_usuario('carcelero'), **button_style)
         boton_carcelero.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=20, pady=20)
         if img_tk_carcelero:
             boton_carcelero.config(image=img_tk_carcelero, text="CARCELERO")
             boton_carcelero.image = img_tk_carcelero
-    
+
+    def cargar_imagen(self, url):
+        """ Descarga y redimensiona una imagen desde una URL """
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # Genera error si la descarga falla
+            img_data = response.content
+            img = Image.open(BytesIO(img_data)).convert("RGBA").resize((100, 100), Image.LANCZOS)
+            return ImageTk.PhotoImage(img)
+        except Exception as e:
+            print(f"Error al cargar la imagen: {e}")
+            return None
+
     def seleccionar_usuario(self, tipo_usuario):
         messagebox.showinfo("Resultado", f"Eres {tipo_usuario}.")
         self.master.destroy()

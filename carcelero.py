@@ -85,7 +85,7 @@ class DesktopCarcelero:
 
     def volver_a_seleccion_usuario(self):
         self.master.destroy()
-        from menu import Aplicacion   # asegúrate de que tu primer script esté en menu.py
+        from dekstop import Aplicacion   # asegúrate de que tu primer script esté en menu.py
         root = tk.Tk()
         Aplicacion(root)
         root.mainloop()

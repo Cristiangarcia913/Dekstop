@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 import json
 import os
 from datetime import datetime
@@ -18,8 +18,8 @@ class DesktopCarcelero:
         self.crear_estructura_datos()
 
         self.prisioneros = self.cargar_datos("prisioneros")
-        self.celdas = self.cargar_datos("celdas")
-        self.visitas = self.cargar_datos("visitas")
+        self.celdas      = self.cargar_datos("celdas")
+        self.visitas     = self.cargar_datos("visitas")
 
         self.crear_interfaz()
 
@@ -85,7 +85,7 @@ class DesktopCarcelero:
 
     def volver_a_seleccion_usuario(self):
         self.master.destroy()
-        from dekstop import Aplicacion   # asegúrate de que tu primer script esté en menu.py
+        from menu import Aplicacion
         root = tk.Tk()
         Aplicacion(root)
         root.mainloop()
@@ -155,18 +155,198 @@ class DesktopCarcelero:
 
             self.menu_abierto = True
 
-    # === Métodos stub para evitar AttributeError ===
+    # === Módulo Prisioneros ===
     def abrir_prisioneros(self):
-        messagebox.showinfo("Prisioneros", "Módulo de prisioneros en desarrollo.")
+        win = tk.Toplevel(self.master)
+        win.title("Prisioneros")
+        win.geometry("700x400")
 
+        cols = ("id", "nombre", "edad", "delito", "fecha_ingreso", "celda_id")
+        tree = ttk.Treeview(win, columns=cols, show="headings")
+        for c in cols:
+            tree.heading(c, text=c.capitalize())
+            tree.column(c, width=100)
+        tree.pack(fill="both", expand=True, side="left", padx=5, pady=5)
+
+        def refrescar():
+            tree.delete(*tree.get_children())
+            for p in self.prisioneros:
+                tree.insert("", "end", values=(
+                    p["id"], p["nombre"], p["edad"],
+                    p["delito"], p["fecha_ingreso"], p.get("celda_id", "")
+                ))
+
+        def añadir():
+            # Pedir datos al usuario
+            nombre = simpledialog.askstring("Nombre", "Nombre del prisionero:", parent=win)
+            if not nombre: return
+            edad = simpledialog.askinteger("Edad", "Edad:", parent=win)
+            delito = simpledialog.askstring("Delito", "Delito:", parent=win)
+            fecha = datetime.now().strftime("%Y-%m-%d")
+            nid = max([p["id"] for p in self.prisioneros], default=0) + 1
+            self.prisioneros.append({
+                "id": nid, "nombre": nombre,
+                "edad": edad, "delito": delito,
+                "fecha_ingreso": fecha, "celda_id": None
+            })
+            self.guardar_datos("prisioneros", self.prisioneros)
+            refrescar()
+
+        def eliminar():
+            sel = tree.selection()
+            if not sel:
+                messagebox.showwarning("Eliminar", "Seleccione un prisionero")
+                return
+            idx = tree.item(sel[0])["values"][0]
+            if messagebox.askyesno("Confirmar", f"Eliminar prisionero ID {idx}?"):
+                self.prisioneros = [p for p in self.prisioneros if p["id"] != idx]
+                self.guardar_datos("prisioneros", self.prisioneros)
+                refrescar()
+
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(side="right", fill="y", padx=5)
+        tk.Button(btn_frame, text="Añadir", command=añadir).pack(fill="x", pady=5)
+        tk.Button(btn_frame, text="Eliminar", command=eliminar).pack(fill="x", pady=5)
+
+        refrescar()
+
+    # === Módulo Celdas ===
     def abrir_celdas(self):
-        messagebox.showinfo("Celdas", "Módulo de celdas en desarrollo.")
+        win = tk.Toplevel(self.master)
+        win.title("Celdas")
+        win.geometry("500x350")
 
+        cols = ("id", "nombre", "capacidad")
+        tree = ttk.Treeview(win, columns=cols, show="headings")
+        for c in cols:
+            tree.heading(c, text=c.capitalize())
+            tree.column(c, width=120)
+        tree.pack(fill="both", expand=True, side="left", padx=5, pady=5)
+
+        def refrescar():
+            tree.delete(*tree.get_children())
+            for c in self.celdas:
+                tree.insert("", "end", values=(c["id"], c["nombre"], c["capacidad"]))
+
+        def añadir():
+            nombre = simpledialog.askstring("Nombre", "Nombre de la celda:", parent=win)
+            if not nombre: return
+            cap = simpledialog.askinteger("Capacidad", "Capacidad:", parent=win)
+            nid = max([c["id"] for c in self.celdas], default=0) + 1
+            self.celdas.append({"id": nid, "nombre": nombre, "capacidad": cap})
+            self.guardar_datos("celdas", self.celdas)
+            refrescar()
+
+        def eliminar():
+            sel = tree.selection()
+            if not sel:
+                messagebox.showwarning("Eliminar", "Seleccione una celda")
+                return
+            idx = tree.item(sel[0])["values"][0]
+            if messagebox.askyesno("Confirmar", f"Eliminar celda ID {idx}?"):
+                self.celdas = [c for c in self.celdas if c["id"] != idx]
+                self.guardar_datos("celdas", self.celdas)
+                refrescar()
+
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(side="right", fill="y", padx=5)
+        tk.Button(btn_frame, text="Añadir", command=añadir).pack(fill="x", pady=5)
+        tk.Button(btn_frame, text="Eliminar", command=eliminar).pack(fill="x", pady=5)
+
+        refrescar()
+
+    # === Módulo Visitas ===
     def abrir_visitas(self):
-        messagebox.showinfo("Visitas", "Módulo de visitas en desarrollo.")
+        win = tk.Toplevel(self.master)
+        win.title("Visitas")
+        win.geometry("700x400")
 
+        cols = ("id", "prisionero", "visitante", "fecha")
+        tree = ttk.Treeview(win, columns=cols, show="headings")
+        for c in cols:
+            tree.heading(c, text=c.capitalize())
+            tree.column(c, width=150)
+        tree.pack(fill="both", expand=True, side="left", padx=5, pady=5)
+
+        def refrescar():
+            tree.delete(*tree.get_children())
+            for v in self.visitas:
+                # encontrar nombre del prisionero
+                pr = next((p["nombre"] for p in self.prisioneros if p["id"] == v["prisionero_id"]), "")
+                tree.insert("", "end", values=(v["id"], pr, v["visitante"], v["fecha"]))
+
+        def añadir():
+            if not self.prisioneros:
+                messagebox.showwarning("Sin prisioneros", "No hay prisioneros registrados.")
+                return
+            # seleccionar prisionero por ID
+            pid = simpledialog.askinteger("Prisionero ID", f"IDs existentes: {[p['id'] for p in self.prisioneros]}", parent=win)
+            if pid not in [p["id"] for p in self.prisioneros]:
+                messagebox.showerror("Error", "ID de prisionero inválido.")
+                return
+            visitante = simpledialog.askstring("Visitante", "Nombre del visitante:", parent=win)
+            fecha = datetime.now().strftime("%Y-%m-%d %H:%M")
+            nid = max([v["id"] for v in self.visitas], default=0) + 1
+            self.visitas.append({
+                "id": nid, "prisionero_id": pid,
+                "visitante": visitante, "fecha": fecha
+            })
+            self.guardar_datos("visitas", self.visitas)
+            refrescar()
+
+        def eliminar():
+            sel = tree.selection()
+            if not sel:
+                messagebox.showwarning("Eliminar", "Seleccione una visita")
+                return
+            idx = tree.item(sel[0])["values"][0]
+            if messagebox.askyesno("Confirmar", f"Eliminar visita ID {idx}?"):
+                self.visitas = [v for v in self.visitas if v["id"] != idx]
+                self.guardar_datos("visitas", self.visitas)
+                refrescar()
+
+        btn_frame = tk.Frame(win)
+        btn_frame.pack(side="right", fill="y", padx=5)
+        tk.Button(btn_frame, text="Añadir", command=añadir).pack(fill="x", pady=5)
+        tk.Button(btn_frame, text="Eliminar", command=eliminar).pack(fill="x", pady=5)
+
+        refrescar()
+
+    # === Módulo Reportes ===
     def generar_reportes(self):
-        messagebox.showinfo("Reportes", "Generación de reportes en desarrollo.")
+        win = tk.Toplevel(self.master)
+        win.title("Reportes")
+        win.geometry("500x400")
+
+        text = tk.Text(win, wrap="word")
+        text.pack(fill="both", expand=True, padx=5, pady=5)
+
+        total_pr = len(self.prisioneros)
+        total_ce = len(self.celdas)
+        total_vis = len(self.visitas)
+        cap_total = sum(c["capacidad"] for c in self.celdas)
+        ocupados = total_pr
+        libres = cap_total - ocupados
+
+        rep = (
+            f"**Reporte de la Prisión**\n\n"
+            f"- Prisioneros totales: {total_pr}\n"
+            f"- Celdas totales: {total_ce}\n"
+            f"- Capacidad total de celdas: {cap_total}\n"
+            f"- Espacios ocupados: {ocupados}\n"
+            f"- Espacios libres: {libres}\n"
+            f"- Visitas registradas: {total_vis}\n\n"
+            "Visitas por prisionero:\n"
+        )
+        conteo_vis = {}
+        for v in self.visitas:
+            conteo_vis[v["prisionero_id"]] = conteo_vis.get(v["prisionero_id"], 0) + 1
+        for pid, cnt in conteo_vis.items():
+            nombre = next((p["nombre"] for p in self.prisioneros if p["id"] == pid), f"ID {pid}")
+            rep += f"  • {nombre}: {cnt}\n"
+
+        text.insert("1.0", rep)
+        text.config(state="disabled")
 
 if __name__ == "__main__":
     root = tk.Tk()

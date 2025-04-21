@@ -1,4 +1,7 @@
+# aplicacion.py
+
 import tkinter as tk
+from tkinter import messagebox
 from PIL import Image, ImageTk
 import requests
 from io import BytesIO
@@ -40,7 +43,9 @@ class Aplicacion:
         }
 
         # Botón Prisionero
-        img_prisionero = self.cargar_imagen("https://img.freepik.com/vector-premium/icono-joven-prision-contorno-joven-carcel-icono-vectorial-color-plano-aislado_96318-126520.jpg")
+        img_prisionero = self.cargar_imagen(
+            "https://img.freepik.com/vector-premium/icono-joven-prision-contorno-joven-carcel-icono-vectorial-color-plano-aislado_96318-126520.jpg"
+        )
         btn_prisionero = tk.Button(
             self.master,
             command=lambda: self.seleccionar_usuario('prisionero'),
@@ -52,7 +57,9 @@ class Aplicacion:
             btn_prisionero.image = img_prisionero
 
         # Botón Carcelero
-        img_carcelero = self.cargar_imagen("https://cdn-icons-png.flaticon.com/512/14167/14167711.png")
+        img_carcelero = self.cargar_imagen(
+            "https://cdn-icons-png.flaticon.com/512/14167/14167711.png"
+        )
         btn_carcelero = tk.Button(
             self.master,
             command=lambda: self.seleccionar_usuario('carcelero'),
@@ -78,8 +85,13 @@ class Aplicacion:
             root = tk.Tk()
             DesktopCarcelero(root)
             root.mainloop()
+        elif tipo_usuario == 'prisionero':
+            from prisionero import DesktopPrisionero
+            root = tk.Tk()
+            DesktopPrisionero(root)
+            root.mainloop()
         else:
-            messagebox.showinfo("En desarrollo", "Módulo prisionero en desarrollo")
+            messagebox.showinfo("En desarrollo", "Módulo no disponible")
 
 if __name__ == "__main__":
     root = tk.Tk()

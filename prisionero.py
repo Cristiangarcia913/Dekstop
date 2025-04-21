@@ -1,3 +1,5 @@
+# prisionero.py
+
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 import json
@@ -5,6 +7,7 @@ import os
 from datetime import datetime, timedelta
 import random
 import time
+from dekstop import Aplicacion
 
 class DesktopPrisionero:
     def __init__(self, master):
@@ -32,7 +35,7 @@ class DesktopPrisionero:
             "edad": 35,
             "delito": "Fraude",
             "fecha_ingreso": "2022-05-15",
-            "fecha_libertad": "2025-11-20",  # Nueva fecha de libertad
+            "fecha_libertad": "2025-11-20",
             "celda_id": 101
         }
 
@@ -60,11 +63,12 @@ class DesktopPrisionero:
 
     def cerrar_sesion(self):
         self.master.destroy()
-        # Aquí podrías agregar código para volver a la pantalla de login si es necesario
-        # from dekstop import Aplicacion  # Asumiendo que existe un módulo de login
-        # root = tk.Tk()
-        # Aplicacion(root)
-        # root.mainloop()
+
+    def regresar(self):
+        self.master.destroy()
+        root = tk.Tk()
+        Aplicacion(root)
+        root.mainloop()
 
     def crear_interfaz(self):
         self.desktop = tk.Frame(self.master, bg="#333333")
@@ -79,6 +83,7 @@ class DesktopPrisionero:
             ("🏠 Inicio", self.menu_inicio),
             ("👤 Mi Perfil", self.mostrar_perfil),
             ("⏳ Contador", self.mostrar_contador),
+            ("🔙 Regresar", self.regresar),
             ("🚪 Salir", self.cerrar_sesion),
         ]
         for texto, comando in botones_barra:
@@ -174,6 +179,7 @@ class DesktopPrisionero:
                 ("🏀 Actividades", self.mostrar_actividades),
                 ("🐍 Jugar Snake", self.jugar_snake),
                 ("🧊 Jugar Tetris", self.jugar_tetris),
+                ("🔙 Regresar", self.regresar),
                 ("🚪 Salir", self.cerrar_sesion)
             ]
             for texto, comando in opciones:
@@ -212,11 +218,10 @@ class DesktopPrisionero:
                 text=f"Fecha estimada de libertad: {fecha_libertad}",
                 font=("Arial", 12)).pack(pady=10)
         
-        # Actualizar el contador cada día
         def actualizar_contador():
             nuevos_dias = self.calcular_dias_restantes()
             self.lbl_info.config(text=f"Prisionero: {self.prisionero_actual['nombre']} | Celda: {self.prisionero_actual['celda_id']} | Días restantes: {nuevos_dias}")
-            win.after(86400000, actualizar_contador)  # Actualizar cada 24 horas
+            win.after(86400000, actualizar_contador)
         
         actualizar_contador()
 
@@ -260,9 +265,7 @@ class DesktopPrisionero:
             tree.column(c, width=120)
         tree.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Filtrar visitas del prisionero actual
         mis_visitas = [v for v in self.visitas if v["prisionero_id"] == self.prisionero_actual["id"]]
-        
         for v in mis_visitas:
             tree.insert("", "end", values=(v["id"], v["visitante"], v["fecha"], v.get("estado", "Pendiente")))
 
@@ -272,7 +275,6 @@ class DesktopPrisionero:
         win.geometry("400x300")
 
         tk.Label(win, text="Solicitud de Visita", font=("Arial", 14, "bold")).pack(pady=10)
-
         tk.Label(win, text="Nombre del visitante:").pack()
         entry_visitante = tk.Entry(win, width=30)
         entry_visitante.pack(pady=5)
@@ -325,9 +327,7 @@ class DesktopPrisionero:
             tree.column(c, width=120)
         tree.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Filtrar quejas del prisionero actual
         mis_quejas = [q for q in self.quejas if q["prisionero_id"] == self.prisionero_actual["id"]]
-        
         for q in mis_quejas:
             tree.insert("", "end", values=(q["id"], q["tipo"], q["fecha"], q.get("estado", "Pendiente")))
 
@@ -337,7 +337,6 @@ class DesktopPrisionero:
         win.geometry("400x400")
 
         tk.Label(win, text="Registro de Queja", font=("Arial", 14, "bold")).pack(pady=10)
-
         tk.Label(win, text="Tipo de queja:").pack()
         tipo_var = tk.StringVar(win)
         tipos = ["Alimentación", "Seguridad", "Salud", "Trato", "Otro"]
@@ -475,7 +474,6 @@ class DesktopPrisionero:
             if game_over:
                 return
 
-            # Mover la serpiente
             head_x, head_y = snake[0]
             if snake_direction == "Up":
                 new_head = (head_x, head_y - cell_size)
@@ -486,7 +484,6 @@ class DesktopPrisionero:
             elif snake_direction == "Right":
                 new_head = (head_x + cell_size, head_y)
 
-            # Verificar colisiones
             if (new_head in snake or 
                 new_head[0] < 0 or new_head[0] >= canvas_width or 
                 new_head[1] < 0 or new_head[1] >= canvas_height):
@@ -497,7 +494,6 @@ class DesktopPrisionero:
 
             snake.insert(0, new_head)
 
-            # Verificar si comió la comida
             if new_head == food:
                 score += 10
                 score_label.config(text=f"Puntuación: {score}")
@@ -505,7 +501,6 @@ class DesktopPrisionero:
             else:
                 snake.pop()
 
-            # Redibujar
             canvas.delete("all")
             for segment in snake:
                 canvas.create_rectangle(segment[0], segment[1], 
@@ -536,7 +531,6 @@ class DesktopPrisionero:
         tetris_win.title("Tetris Game")
         tetris_win.resizable(False, False)
 
-        # Configuración del juego
         cell_size = 25
         cols = 10
         rows = 20
@@ -546,28 +540,26 @@ class DesktopPrisionero:
         canvas = tk.Canvas(tetris_win, width=width, height=height, bg="black")
         canvas.pack()
 
-        # Formas de las piezas
         shapes = [
-            [[1, 1, 1, 1]],  # I
-            [[1, 1], [1, 1]],  # O
-            [[1, 1, 1], [0, 1, 0]],  # T
-            [[1, 1, 1], [1, 0, 0]],  # L
-            [[1, 1, 1], [0, 0, 1]],  # J
-            [[0, 1, 1], [1, 1, 0]],  # S
-            [[1, 1, 0], [0, 1, 1]]   # Z
+            [[1,1,1,1]],      # I
+            [[1,1],[1,1]],    # O
+            [[1,1,1],[0,1,0]],# T
+            [[1,1,1],[1,0,0]],# L
+            [[1,1,1],[0,0,1]],# J
+            [[0,1,1],[1,1,0]],# S
+            [[1,1,0],[0,1,1]] # Z
         ]
-        colors = ["cyan", "yellow", "purple", "orange", "blue", "green", "red"]
+        colors = ["cyan","yellow","purple","orange","blue","green","red"]
 
         class Piece:
             def __init__(self):
-                self.shape_idx = random.randint(0, len(shapes) - 1)
+                self.shape_idx = random.randint(0, len(shapes)-1)
                 self.shape = shapes[self.shape_idx]
                 self.color = colors[self.shape_idx]
-                self.x = cols // 2 - len(self.shape[0]) // 2
+                self.x = cols//2 - len(self.shape[0])//2
                 self.y = 0
 
-        # Estado del juego
-        board = [[0 for _ in range(cols)] for _ in range(rows)]
+        board = [[0]*cols for _ in range(rows)]
         current_piece = Piece()
         score = 0
         game_over = False
@@ -579,48 +571,36 @@ class DesktopPrisionero:
             for y, row in enumerate(piece.shape):
                 for x, cell in enumerate(row):
                     if cell:
-                        canvas_x = (piece.x + x) * cell_size
-                        canvas_y = (piece.y + y) * cell_size
-                        if clear:
-                            canvas.create_rectangle(canvas_x, canvas_y, 
-                                                  canvas_x + cell_size, canvas_y + cell_size, 
-                                                  fill="black", outline="black")
-                        else:
-                            canvas.create_rectangle(canvas_x, canvas_y, 
-                                                  canvas_x + cell_size, canvas_y + cell_size, 
-                                                  fill=piece.color, outline="white")
+                        cx = (piece.x + x)*cell_size
+                        cy = (piece.y + y)*cell_size
+                        fill = "black" if clear else piece.color
+                        outline = "black" if clear else "white"
+                        canvas.create_rectangle(cx, cy, cx+cell_size, cy+cell_size, fill=fill, outline=outline)
 
         def draw_board():
             for y in range(rows):
                 for x in range(cols):
                     if board[y][x]:
-                        canvas.create_rectangle(x * cell_size, y * cell_size,
-                                              (x + 1) * cell_size, (y + 1) * cell_size,
-                                              fill=colors[board[y][x] - 1], outline="white")
+                        canvas.create_rectangle(x*cell_size, y*cell_size,
+                                                x*cell_size+cell_size, y*cell_size+cell_size,
+                                                fill=colors[board[y][x]-1], outline="white")
 
         def check_collision(piece, dx=0, dy=0):
             for y, row in enumerate(piece.shape):
                 for x, cell in enumerate(row):
                     if cell:
-                        new_x = piece.x + x + dx
-                        new_y = piece.y + y + dy
-                        if (new_x < 0 or new_x >= cols or 
-                            new_y >= rows or 
-                            (new_y >= 0 and board[new_y][new_x])):
+                        nx = piece.x + x + dx
+                        ny = piece.y + y + dy
+                        if nx<0 or nx>=cols or ny>=rows or (ny>=0 and board[ny][nx]):
                             return True
             return False
 
         def rotate_piece(piece):
-            # Rotar la forma de la pieza
-            rotated = [[piece.shape[y][x] for y in range(len(piece.shape)-1, -1, -1)] 
-                      for x in range(len(piece.shape[0]))]
-            
-            old_shape = piece.shape
+            rotated = [[piece.shape[r][c] for r in range(len(piece.shape)-1, -1, -1)] for c in range(len(piece.shape[0]))]
+            old = piece.shape
             piece.shape = rotated
-            
-            # Si hay colisión después de rotar, revertir
             if check_collision(piece):
-                piece.shape = old_shape
+                piece.shape = old
 
         def move_piece(dx, dy):
             if not check_collision(current_piece, dx, dy):
@@ -633,49 +613,38 @@ class DesktopPrisionero:
 
         def drop_piece():
             nonlocal current_piece, score, game_over
-            
-            while move_piece(0, 1):
+            while move_piece(0,1):
                 pass
-            
-            # Fijar la pieza al tablero
             for y, row in enumerate(current_piece.shape):
                 for x, cell in enumerate(row):
-                    if cell and current_piece.y + y >= 0:
-                        board[current_piece.y + y][current_piece.x + x] = current_piece.shape_idx + 1
-            
-            # Verificar líneas completas
-            lines_cleared = 0
+                    if cell and current_piece.y+y>=0:
+                        board[current_piece.y+y][current_piece.x+x] = current_piece.shape_idx+1
+            lines = 0
             for y in range(rows):
                 if all(board[y]):
-                    lines_cleared += 1
-                    for y2 in range(y, 0, -1):
-                        board[y2] = board[y2-1][:]
-                    board[0] = [0] * cols
-            
-            # Actualizar puntuación
-            if lines_cleared > 0:
-                score += lines_cleared * 100
+                    lines+=1
+                    del board[y]
+                    board.insert(0, [0]*cols)
+            if lines:
+                score_inc = lines*100
+                score += score_inc
                 score_label.config(text=f"Puntuación: {score}")
-            
-            # Nueva pieza
             current_piece = Piece()
             if check_collision(current_piece):
                 game_over = True
-                canvas.create_text(width/2, height/2, 
-                                 text="GAME OVER", fill="red", font=("Arial", 30))
+                canvas.create_text(width/2, height/2, text="GAME OVER", fill="red", font=("Arial", 30))
 
         def game_loop():
             if not game_over:
-                if not move_piece(0, 1):
+                if not move_piece(0,1):
                     drop_piece()
                 draw_board()
                 draw_piece(current_piece)
                 tetris_win.after(500, game_loop)
 
-        # Controles
-        tetris_win.bind("<Left>", lambda e: move_piece(-1, 0))
-        tetris_win.bind("<Right>", lambda e: move_piece(1, 0))
-        tetris_win.bind("<Down>", lambda e: move_piece(0, 1))
+        tetris_win.bind("<Left>", lambda e: move_piece(-1,0))
+        tetris_win.bind("<Right>", lambda e: move_piece(1,0))
+        tetris_win.bind("<Down>", lambda e: move_piece(0,1))
         tetris_win.bind("<Up>", lambda e: rotate_piece(current_piece))
         tetris_win.bind("<space>", lambda e: drop_piece())
 

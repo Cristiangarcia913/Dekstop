@@ -3,9 +3,54 @@ from tkinter import ttk, messagebox, simpledialog
 import json
 import os
 from datetime import datetime
+from PIL import Image, ImageTk
 
 class DesktopCarcelero:
-    def __init__(self, master):
+    def crear_interfaz(self):
+    # --- Fondo con imagen ---
+        imagen_path = imagen_path = "/media/sf_ubuntu/A_digital_photograph_with_graphic_text_overlay_dep.jpg"  # <-- Aquí pon el path de tu imagen
+        imagen_fondo = Image.open(imagen_path)
+        imagen_fondo = imagen_fondo.resize((1024, 768))  # <-- Ajusta al tamaño de tu ventana
+        self.imagen_fondo_tk = ImageTk.PhotoImage(imagen_fondo)
+
+        self.desktop = tk.Label(self.master, image=self.imagen_fondo_tk)
+        self.desktop.pack(fill="both", expand=True)
+
+    # --- Botón de regreso al menú principal (ahora sobre el fondo) ---
+        btn_volver = tk.Button(
+                self.desktop,  # <-- importante: lo pones sobre self.desktop ahora
+                text="↩ Volver al Menú",
+                bg="#2B2B2B",
+                fg="white",
+                font=("Arial", 10, "bold"),
+                relief="raised",
+                command=self.volver_a_seleccion_usuario
+        )
+        btn_volver.place(x=10, y=10)
+
+    # Barra de tareas
+        self.barra_tareas = tk.Frame(self.master, bg="#2B2B2B", height=50)
+        self.barra_tareas.pack(side="bottom", fill="x")
+    # Botones en barra de tareas
+        botones_barra = [
+                ("🏠 Inicio", self.menu_inicio),
+                ("👤 Usuarios", self.volver_a_seleccion_usuario),
+        ]
+        for texto, comando in botones_barra:
+                btn = tk.Button(
+                        self.barra_tareas,
+                        text=texto,
+                        bg="#2B2B2B",
+                        fg="white",
+                        font=("Arial", 10, "bold"),
+                        relief="flat",
+                        command=comando
+                )
+                btn.pack(side="left", padx=5)
+
+        self.crear_iconos()
+
+    def _init_(self, master):
         self.master = master
         self.master.title("Desktop - Carcelero")
         self.master.geometry("1024x768")
@@ -43,48 +88,9 @@ class DesktopCarcelero:
         with open(f"{self.carpeta_datos}/{tipo}/{tipo}.json", "w") as f:
             json.dump(datos, f, indent=4)
 
-    def crear_interfaz(self):
-        # Frame principal
-        self.desktop = tk.Frame(self.master, bg="#0078D7")
-        self.desktop.pack(fill="both", expand=True)
-
-        # --- Botón de regreso al menú principal ---
-        btn_volver = tk.Button(
-            self.desktop,
-            text="↩ Volver al Menú",
-            bg="#2B2B2B",
-            fg="white",
-            font=("Arial", 10, "bold"),
-            relief="raised",
-            command=self.volver_a_seleccion_usuario
-        )
-        btn_volver.place(x=10, y=10)
-
-        # Barra de tareas
-        self.barra_tareas = tk.Frame(self.master, bg="#2B2B2B", height=50)
-        self.barra_tareas.pack(side="bottom", fill="x")
-
-        # Botones en barra de tareas
-        botones_barra = [
-            ("🏠 Inicio", self.menu_inicio),
-            ("👤 Usuarios", self.volver_a_seleccion_usuario),
-        ]
-        for texto, comando in botones_barra:
-            btn = tk.Button(
-                self.barra_tareas,
-                text=texto,
-                bg="#2B2B2B",
-                fg="white",
-                font=("Arial", 10, "bold"),
-                relief="flat",
-                command=comando
-            )
-            btn.pack(side="left", padx=5)
-
-        self.crear_iconos()
-
     def volver_a_seleccion_usuario(self):
         self.master.destroy()
+        from menu import Aplicacion
         from dekstop import Aplicacion
         root = tk.Tk()
         Aplicacion(root)
@@ -160,7 +166,6 @@ class DesktopCarcelero:
         win = tk.Toplevel(self.master)
         win.title("Prisioneros")
         win.geometry("700x400")
-
         cols = ("id", "nombre", "edad", "delito", "fecha_ingreso", "celda_id")
         tree = ttk.Treeview(win, columns=cols, show="headings")
         for c in cols:
@@ -329,7 +334,7 @@ class DesktopCarcelero:
         libres = cap_total - ocupados
 
         rep = (
-            f"**Reporte de la Prisión**\n\n"
+            f"*Reporte de la Prisión*\n\n"
             f"- Prisioneros totales: {total_pr}\n"
             f"- Celdas totales: {total_ce}\n"
             f"- Capacidad total de celdas: {cap_total}\n"
@@ -348,7 +353,7 @@ class DesktopCarcelero:
         text.insert("1.0", rep)
         text.config(state="disabled")
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     root = tk.Tk()
     app = DesktopCarcelero(root)
-    root.mainloop()
+    root.mainloop()
